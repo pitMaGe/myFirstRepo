@@ -1,0 +1,27 @@
+function int UniversialMessageBox(string $sMessage, int $iType)
+{
+#if RUNNING_IN_UI_MODE
+    return MessageBox($sMessage, $iType);
+
+#else
+    /*
+    pit - FM web kann mit den Flags für die Icons der MessageBoxen nichts anfangen,
+    deshalb müssen diese aus $iType entfernt werden.
+    Dazu benutzen wir bit-Verschiebungen.
+
+    Bsp.: 4(100) + 32(100000) = 36(100100)YesNO + IconQuestion
+    Die Einstellung der Buttons erfolgt mit den Flags 1-5, also ist alles größer 5 (101) für die Einstellung der Icons.
+    Da diese scheinbar im Web nicht ausgewertet werden, müssen wir alles größer fünf los werden.
+    Für die Darstellung der Zahl fünf sind 3 bits nötig, daher die Verschiebungen um jeweils drei bits.
+        36 >> 3 = 4
+        4 << 3 = 32
+        36 - 32 = 4
+    */
+    var int $iNewType;
+
+    $iNewType = $iType >> 3; //drei bits nach rechts
+    $iNewType = $iNewType << 3; //und wieder zürück, ergibt die codierte Zahl für den Teil der Icons
+    $iNewType = $iType - $iNewType; // den errechneten Teil ziehen wir von der ursrpünglichen Zahl ab und erhalten den Teil für die Buttons
+    return WSClientCallbackMsgBoxQuery($sMessage, $iType);
+#endif
+}
